@@ -155,37 +155,120 @@ function deleteCart(cartId) {
 
 // 送出預定資料
 const payInfoBox = document.querySelector(".payInfoBox");
-let payInfo = {};
-// payInfoBox.addEventListener('click',function(e){
-// if (e.target.nodeName !== 'INPUT'){
-//   return
-// }
-// console.log('hi')
-// })
-
+// let payInfo = {};
 const sendPayInfo = document.querySelector(".sendPayInfo");
-//送出預定資料
+
+//監聽送出
 sendPayInfo.addEventListener("click", function () {
-  createOrder();
+  checkPayForm();
 });
 
-function createOrder() {
-  axios
-    .post(
-      `https://hexschoollivejs.herokuapp.com/api/livejs/v1/customer/${apiPath}/orders`,
-      {
-        data: {
-          user: {
-            name: "六角學院",
-            tel: "07-5313506",
-            email: "hexschool@hexschool.com",
-            address: "高雄市六角學院路",
-            payment: "Apple Pay",
-          },
-        },
+//檢查表單有無填寫
+function checkPayForm (){
+  let checkOk = false;
+  const form = document.querySelector("form#payForm");
+  const formInputsList = document.querySelectorAll(
+    "#payForm input[type=text],input[type=number],input[type=email],select"
+  );
+  const constraints = {
+    infoName: {
+      presence: {
+        message: ":必填!",
+      },
+    },
+    infoPhone: {
+      presence: {
+        message: ":必填!",
+      },
+    },
+    infoEmail: {
+      presence: {
+        message: ":必填!",
+      },
+    },
+    infoAddress: {
+      presence: {
+        message: ":必填!",
+      },
+    },
+    infoPayWay:{
+      presence: {
+        message: ":必填!"
+      },
+    },
+  };
+  formInputsList.forEach((item) => {
+    // console.log(item);
+    item.nextElementSibling.textContent = "";
+    let errors = validate(form, constraints);
+    // console.log(errors);
+    //呈現在畫面上
+    if (errors) {
+      Object.keys(errors).forEach(function (keys) {
+        console.log(keys)
+        let txt = `${errors[keys]}`
+        let str = txt.split(':');
+        console.log(str[1]);
+        document.querySelector(`.${keys}`).textContent = str[1];
+      });
+    }else if(!errors){
+      checkOk =true
+    }
+    item.addEventListener("change", function () {
+      item.nextElementSibling.textContent = "";
+      let errors = validate(form, constraints);
+      // console.log(errors);
+      //呈現在畫面上
+      // console.log(item)
+      if (errors) {
+        Object.keys(errors).forEach(function (keys) {
+          console.log(keys)
+          let txt = `${errors[keys]}`
+          let str = txt.split(':');
+          console.log(str[1]);
+          document.querySelector(`.${keys}`).textContent = str[1];
+        });
+      }else if(!errors){
+        checkOk =true
       }
-    )
-    .then(function (response) {
-      console.log(response.data);
     });
+  });
+  if(checkOk == true){
+    console.log('資料都填妥了')
+    processPayFormData();
+  }
 }
+
+//產生資料
+function processPayFormData() {
+  let objOder={};
+  const payForm = document.forms["payForm"]; // 取得 name 屬性為 form 的表單
+  // console.log(payForm.elements.infoName.value)
+  objOder.infoName = payForm.elements.infoName.value; // 取得 elements 集合中 name 屬性為 name 的值
+  objOder.infoPhone = payForm.elements.infoPhone.value;
+  objOder.infoEmail = payForm.elements.infoEmail.value;
+  objOder.infoAddress = payForm.elements.infoAddress.value;
+  objOder.infoPayWay = payForm.elements.infoPayWay.value;
+  console.log(objOder);
+  createOrder(objOder);
+}
+
+function createOrder(objOder){
+  axios.post(`https://hexschoollivejs.herokuapp.com/api/livejs/v1/customer/${apiPath}/orders`,
+    {
+      "data": {
+        "user": {
+          "name": objOder.infoName,
+          "tel": objOder.infoPhone,
+          "email": objOder.infoEmail,
+          "address": objOder.infoAddress,
+          "payment": objOder.infoPayWay
+        }
+      }
+    }
+  ).
+    then(function (response) {
+      console.log(response.data);
+    })
+}
+
