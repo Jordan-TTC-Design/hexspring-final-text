@@ -2,11 +2,14 @@
 const apiPath = `jordanttcdesign`;
 const domProductList = document.querySelector(".list");
 const domCartList = document.querySelector(".cartList");
+const domDeleteCartAll = document.querySelector(".deleteCartAll");
+const domProductsFilter = document.querySelector("#productsFilter");
 // const token = ``
 
 //主要畫面資料陣列
 let data;
 let cartList;
+let productData;
 
 //預設動作
 function init() {
@@ -18,7 +21,7 @@ function init() {
       // 成功會回傳的內容
       data = response.data;
       // console.log(data);
-      let productData = data.products;
+      productData = data.products;
       let productPriceList = sortList(productData, "price");
       getCart();
       cardRender(productPriceList);
@@ -127,7 +130,29 @@ function cartRender() {
       item.id
     }" class="deleteCart"/></li>`;
   });
+  //如果有資料就顯示刪除全部購物車按鈕
+  if (str == "") {
+    domDeleteCartAll.classList.remove("show");
+  } else if (str !== "") {
+    domDeleteCartAll.classList.add("show");
+  }
+  console.log(domDeleteCartAll.classList);
   domCartList.innerHTML = str;
+}
+// 監聽刪除全部購物車
+domDeleteCartAll.addEventListener("click", function () {
+  deleteCartAll();
+});
+//刪除全部購物車
+function deleteCartAll() {
+  axios
+    .delete(
+      `https://hexschoollivejs.herokuapp.com/api/livejs/v1/customer/${apiPath}/carts`
+    )
+    .then(function (response) {
+      console.log(response.data);
+      getCart();
+    });
 }
 
 // 監聽刪除購物車
@@ -164,7 +189,7 @@ sendPayInfo.addEventListener("click", function () {
 });
 
 //檢查表單有無填寫
-function checkPayForm (){
+function checkPayForm() {
   let checkOk = false;
   const form = document.querySelector("form#payForm");
   const formInputsList = document.querySelectorAll(
@@ -191,9 +216,9 @@ function checkPayForm (){
         message: ":必填!",
       },
     },
-    infoPayWay:{
+    infoPayWay: {
       presence: {
-        message: ":必填!"
+        message: ":必填!",
       },
     },
   };
@@ -205,14 +230,14 @@ function checkPayForm (){
     //呈現在畫面上
     if (errors) {
       Object.keys(errors).forEach(function (keys) {
-        console.log(keys)
-        let txt = `${errors[keys]}`
-        let str = txt.split(':');
+        console.log(keys);
+        let txt = `${errors[keys]}`;
+        let str = txt.split(":");
         console.log(str[1]);
         document.querySelector(`.${keys}`).textContent = str[1];
       });
-    }else if(!errors){
-      checkOk =true
+    } else if (!errors) {
+      checkOk = true;
     }
     item.addEventListener("change", function () {
       item.nextElementSibling.textContent = "";
@@ -222,26 +247,26 @@ function checkPayForm (){
       // console.log(item)
       if (errors) {
         Object.keys(errors).forEach(function (keys) {
-          console.log(keys)
-          let txt = `${errors[keys]}`
-          let str = txt.split(':');
+          console.log(keys);
+          let txt = `${errors[keys]}`;
+          let str = txt.split(":");
           console.log(str[1]);
           document.querySelector(`.${keys}`).textContent = str[1];
         });
-      }else if(!errors){
-        checkOk =true
+      } else if (!errors) {
+        checkOk = true;
       }
     });
   });
-  if(checkOk == true){
-    console.log('資料都填妥了')
+  if (checkOk == true) {
+    console.log("資料都填妥了");
     processPayFormData();
   }
 }
 
 //產生資料
 function processPayFormData() {
-  let objOder={};
+  let objOder = {};
   const payForm = document.forms["payForm"]; // 取得 name 屬性為 form 的表單
   // console.log(payForm.elements.infoName.value)
   objOder.infoName = payForm.elements.infoName.value; // 取得 elements 集合中 name 屬性為 name 的值
@@ -253,22 +278,42 @@ function processPayFormData() {
   createOrder(objOder);
 }
 
-function createOrder(objOder){
-  axios.post(`https://hexschoollivejs.herokuapp.com/api/livejs/v1/customer/${apiPath}/orders`,
-    {
-      "data": {
-        "user": {
-          "name": objOder.infoName,
-          "tel": objOder.infoPhone,
-          "email": objOder.infoEmail,
-          "address": objOder.infoAddress,
-          "payment": objOder.infoPayWay
-        }
+function createOrder(objOder) {
+  axios
+    .post(
+      `https://hexschoollivejs.herokuapp.com/api/livejs/v1/customer/${apiPath}/orders`,
+      {
+        data: {
+          user: {
+            name: objOder.infoName,
+            tel: objOder.infoPhone,
+            email: objOder.infoEmail,
+            address: objOder.infoAddress,
+            payment: objOder.infoPayWay,
+          },
+        },
       }
-    }
-  ).
-    then(function (response) {
+    )
+    .then(function (response) {
       console.log(response.data);
-    })
+    });
 }
-
+//監聽塞選品項
+domProductsFilter.addEventListener("change", function () {
+  ProductsFilter();
+});
+//塞選品項
+function ProductsFilter() {
+  let category = domProductsFilter.value;
+  let str = "";
+  let newData = [];
+  productData.forEach(function (item) {
+    console.log(item);
+    if (category == item.category) {
+      newData.push(item);
+    } else if (category == "全部") {
+      newData.push(item);
+    }
+  });
+  cardRender(newData);
+}

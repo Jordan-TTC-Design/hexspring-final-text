@@ -14,6 +14,12 @@
     <link rel="stylesheet" href="all.css" />
   </head>
   <body>
+    <select name="" id="productsFilter">
+      <option value="全部" selected>全部</option>
+      <option value="床架">床架</option>
+      <option value="窗簾">窗簾</option>
+      <option value="收納">收納</option>
+    </select>
     <ul class="list">
       <li class="list_card">
         <div class="box" id="">
@@ -33,6 +39,9 @@
         <input type="button" value="刪除品項" data-id="" class="deleteCart" />
       </li>
     </ul>
+    <!-- 好像不應該要放外面，但是放裡面就要用js做，然後每次都會刷一次。 -->
+    <input type="button" value="刪除全部品項" class="deleteCartAll" />
+    
     <div class="payInfoBox">
       <form id="payForm">
         <div class="payInfoItem">
